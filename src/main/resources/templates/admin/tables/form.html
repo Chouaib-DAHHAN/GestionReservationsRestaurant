@@ -1,0 +1,26 @@
+<h2 th:text="${table.id != null} ? 'Modifier une table' : 'Ajouter une table'"></h2>
+
+<form th:action="@{/admin/tables/save}" method="post" th:object="${table}">
+    <input type="hidden" th:field="*{id}" />
+
+    <label>Numéro de table :</label>
+    <input type="number" th:field="*{numeroTable}" required /><br/>
+
+    <label>Capacité :</label>
+    <input type="number" th:field="*{capacite}" required /><br/>
+
+    <label>Type :</label>
+    <input type="text" th:field="*{type}" /><br/>
+
+    <label>Localisation :</label>
+    <input type="text" th:field="*{localisation}" /><br/>
+
+    <label>Disponible :</label>
+    <input type="checkbox" th:field="*{disponible}" /><br/>
+
+    <div th:if="${error}" style="color:red">
+        <p th:text="${error}"></p>
+    </div>
+
+    <button type="submit">Enregistrer</button>
+</form>

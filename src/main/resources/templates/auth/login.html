@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Connexion</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+    <h2>Connexion</h2>
+   <form th:action="@{/perform_login}" method="post">  <!-- Must match SecurityConfig -->
+    <input type="text" name="username" required />
+    <input type="password" name="password" required />
+    <button type="submit">Login</button>
+</form>
+
+    <div style="color: red;" th:if="${param.error}">
+        Nom d'utilisateur ou mot de passe invalide.
+    </div>
+
+    <div style="color: green;" th:if="${param.logout}">
+        Vous êtes déconnecté.
+    </div>
+
+    <p>Pas encore inscrit ? <a th:href="@{/register}">Créer un compte</a></p>
+</body>
+</html>

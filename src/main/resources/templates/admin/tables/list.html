@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Tables</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .table-visual {
+            transition: all 0.3s ease;
+        }
+        .table-visual:hover {
+            transform: scale(1.05);
+        }
+        .restaurant-floor {
+            background-image: linear-gradient(45deg, #f5f5f5 25%, transparent 25%), 
+                              linear-gradient(-45deg, #f5f5f5 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #f5f5f5 75%), 
+                              linear-gradient(-45deg, transparent 75%, #f5f5f5 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header avec bouton d'ajout -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Gestion des Tables</h1>
+                <p class="text-gray-600">Interface d'administration</p>
+            </div>
+            <a th:href="@{/admin/tables/new}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+                <i class="fas fa-plus mr-2"></i> Nouvelle table
+            </a>
+        </div>
+
+        <!-- Messages d'erreur -->
+        <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p th:text="${error}"></p>
+        </div>
+
+        <!-- Plan de salle visuel -->
+        <div class="restaurant-floor p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Plan de la salle</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Boucle sur les tables -->
+                <div th:each="table : ${tables}" 
+                     th:onclick="|window.location.href='/admin/tables/edit/' + ${table.id}|"
+                     class="table-visual cursor-pointer flex flex-col items-center justify-center"
+                     th:class="${table.type == 'Ronde'} ? 
+                              'rounded-full h-32 w-32' : 
+                              (${table.type == 'Carrée'} ? 'rounded-lg h-32 w-32' : 'h-32 w-48')">
+                    
+                    <div th:class="${table.disponible} ? 
+                                  'bg-green-100 border-4 border-green-500' : 
+                                  'bg-red-100 border-4 border-red-500'"
+                         class="h-full w-full flex flex-col items-center justify-center">
+                        <span class="font-bold text-lg" th:text="${table.numeroTable}"></span>
+                        <span class="text-sm" th:text="|${table.capacite} pers.|"></span>
+                        <span class="text-xs mt-1" 
+                              th:class="${table.disponible} ? 'text-green-700' : 'text-red-700'"
+                              th:text="${table.disponible} ? 'Disponible' : 'Réservée'"></span>
+                        <span class="text-xs mt-1" th:text="${table.localisation}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des tables sous forme de tableau -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <h2 class="text-xl font-semibold p-6">Liste complète des tables</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacité</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Localisation</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="table : ${tables}">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium" th:text="${table.numeroTable}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="|${table.capacite} personnes|"></td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="${table.type}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap" th:text="${table.localisation}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${table.disponible}" 
+                                      class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Disponible</span>
+                                <span th:unless="${table.disponible}" 
+                                      class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Réservée</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <a th:href="@{'/admin/tables/edit/' + ${table.id}}" 
+                                   class="text-blue-600 hover:text-blue-800 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a th:href="@{'/admin/tables/delete/' + ${table.id}}" 
+                                   class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

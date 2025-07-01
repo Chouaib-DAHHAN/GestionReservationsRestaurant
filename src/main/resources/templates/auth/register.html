@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Inscription</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+    <h2>Inscription</h2>
+    <form th:action="@{/auth/register}" method="post" th:object="${registerRequest}">
+        <label for="username">Nom d'utilisateur :</label>
+        <input type="text" id="username" th:field="*{username}" required /><br/><br/>
+
+        <label for="password">Mot de passe :</label>
+        <input type="password" id="password" th:field="*{password}" required /><br/><br/>
+
+        <label for="role">Rôle :</label>
+        <select id="role" th:field="*{role}" required>
+            <option value="" disabled selected>-- Choisir un rôle --</option>
+            <option value="CLIENT">Client</option>
+            <option value="ADMIN">Admin</option>
+        </select><br/><br/>
+
+        <button type="submit">S'inscrire</button>
+    </form>
+
+    <div style="color: red;" th:if="${errorMessage}">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <div style="color: green;" th:if="${successMessage}">
+        <p th:text="${successMessage}"></p>
+    </div>
+
+    <p>Déjà un compte ? <a th:href="@{/login}">Se connecter</a></p>
+</body>
+</html>

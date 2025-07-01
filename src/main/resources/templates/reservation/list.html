@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head><meta charset="UTF-8"><title>Liste des réservations</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body>
+<h1>Bienvenue sur la page de gestion des réservations</h1>
+<p>Vous êtes connecté en tant que <span th:text="${#authentication.principal.username}"></span>.</p>
+
+<p>Pour ajouter une nouvelle réservation, cliquez <a th:href="@{/reservations/new}">ici</a>.</p>
+<h2>Liste des Réservations</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date et Heure</th>
+            <th>Nombre de Personnes</th>
+            <th>Table</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="reservation : ${reservations}">
+            <td th:text="${reservation.id}"></td>
+            <td th:text="${#temporals.format(reservation.dateTime, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${reservation.nombrePersonnes}"></td>
+            <td th:text="${reservation.table.numeroTable}"></td>
+            <td>
+                <a th:href="@{/reservations/edit/{id}(id=${reservation.id})}">Modifier</a> |
+                <a th:href="@{/reservations/delete/{id}(id=${reservation.id})}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?');">Supprimer</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</body>
+</html>
