@@ -1,26 +1,230 @@
-<h2 th:text="${table.id != null} ? 'Modifier une table' : 'Ajouter une table'"></h2>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 
-<form th:action="@{/admin/tables/save}" method="post" th:object="${table}">
-    <input type="hidden" th:field="*{id}" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${table.id != null} ? 'Modifier table' : 'Nouvelle table'"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
 
-    <label>Numéro de table :</label>
-    <input type="number" th:field="*{numeroTable}" required /><br/>
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
 
-    <label>Capacité :</label>
-    <input type="number" th:field="*{capacite}" required /><br/>
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+        }
 
-    <label>Type :</label>
-    <input type="text" th:field="*{type}" /><br/>
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4f46e5;
+        }
 
-    <label>Localisation :</label>
-    <input type="text" th:field="*{localisation}" /><br/>
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #4f46e5;
+        }
+    </style>
+</head>
 
-    <label>Disponible :</label>
-    <input type="checkbox" th:field="*{disponible}" /><br/>
+<body class="bg-gray-50 min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="hidden md:flex md:flex-shrink-0">
+        <div class="flex flex-col w-64 bg-white border-r border-gray-200">
+            <div class="flex items-center justify-center h-16 px-4 bg-primary-600">
+                <span class="text-white font-bold text-xl">RestoAdmin</span>
+            </div>
+            <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
+                <div class="space-y-1">
+                    <a href="#"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-white rounded-md bg-primary-500 group">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Tableau de bord
+                    </a>
+                    <a th:href="@{/admin/tables}"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                        <i class="fas fa-utensils mr-3"></i>
+                        Gérer les tables
+                    </a>
+                    <a th:href="@{/reservations/list}"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                        <i class="fas fa-calendar-alt mr-3"></i>
+                        Gérer les réservations
+                    </a>
+                    <a href="#"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                        <i class="fas fa-users mr-3"></i>
+                        Clients
+                    </a>
+                    <a href="#"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                        <i class="fas fa-cog mr-3"></i>
+                        Paramètres
+                    </a>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700" th:text="${#authentication.principal.username}">
+                        </p>
 
-    <div th:if="${error}" style="color:red">
-        <p th:text="${error}"></p>
+                        <form th:action="@{/perform_logout}" method="post">
+                            <button type="submit"
+                                class="text-xs font-medium text-red-500 hover:text-red-700 border-none bg-transparent cursor-pointer">
+                                Déconnexion
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
 
-    <button type="submit">Enregistrer</button>
-</form>
+    <!-- Mobile menu button -->
+    <div class="md:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Mobile top navigation -->
+        <div class="md:hidden">
+            <div class="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
+                <div class="text-lg font-medium text-gray-900"
+                    th:text="${table.id != null} ? 'Modifier table' : 'Nouvelle table'"></div>
+                <div class="flex items-center">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700" th:text="${#authentication.principal.username}">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <main class="flex-1 overflow-y-auto p-4 sm:px-6 lg:px-8 bg-gray-50">
+            <div class="max-w-md mx-auto">
+                <!-- Card -->
+                <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                    <!-- Card header -->
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                        <h2 class="text-2xl font-bold text-gray-800"
+                            th:text="${table.id != null} ? 'Modifier une table' : 'Ajouter une table'"></h2>
+                    </div>
+
+                    <!-- Card body -->
+                    <div class="px-6 py-4">
+                        <!-- Error message -->
+                        <div th:if="${error}" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span th:text="${error}"></span>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/admin/tables/save}" method="post" th:object="${table}" class="space-y-6">
+                            <input type="hidden" th:field="*{id}" />
+
+                            <!-- Numéro de table -->
+                            <div>
+                                <label for="numeroTable" class="block text-sm font-medium text-gray-700 mb-1">Numéro de
+                                    table *</label>
+                                <input type="number" id="numeroTable" th:field="*{numeroTable}" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Ex: 1">
+                            </div>
+
+                            <!-- Capacité -->
+                            <div>
+                                <label for="capacite" class="block text-sm font-medium text-gray-700 mb-1">Capacité
+                                    *</label>
+                                <input type="number" id="capacite" th:field="*{capacite}" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Ex: 4">
+                            </div>
+
+                            <!-- Type -->
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <select id="type" th:field="*{type}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="Ronde">Ronde</option>
+                                    <option value="Carrée">Carrée</option>
+                                    <option value="Rectangulaire">Rectangulaire</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="Standard">Standard</option>
+                                </select>
+                            </div>
+
+                            <!-- Localisation -->
+                            <div>
+                                <label for="localisation"
+                                    class="block text-sm font-medium text-gray-700 mb-1">Localisation</label>
+                                <input type="text" id="localisation" th:field="*{localisation}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Ex: Terrasse">
+                            </div>
+
+                            <!-- Disponible (Toggle switch) -->
+                            <div class="flex items-center justify-between">
+                                <label for="disponible"
+                                    class="block text-sm font-medium text-gray-700">Disponible</label>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                    <input type="checkbox" id="disponible" th:field="*{disponible}"
+                                        class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" />
+                                    <label for="disponible"
+                                        class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </div>
+
+                            <!-- Form actions -->
+                            <div class="flex justify-end space-x-3 pt-4">
+                                <a th:href="@{/admin/tables}"
+                                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                                    Annuler
+                                </a>
+                                <button type="submit"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-save mr-2"></i>
+                                    <span th:text="${table.id != null} ? 'Mettre à jour' : 'Enregistrer'"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Gestion du menu mobile
+        document.getElementById('mobile-menu-button').addEventListener('click', function () {
+            document.body.classList.toggle('sidebar-open');
+        });
+
+        // Fermer le sidebar quand on clique à l'extérieur (sur mobile)
+        document.addEventListener('click', function (event) {
+            const sidebar = document.querySelector('.sidebar');
+            const mobileButton = document.getElementById('mobile-menu-button');
+
+            if (window.innerWidth < 768 &&
+                !sidebar.contains(event.target) &&
+                event.target !== mobileButton &&
+                !mobileButton.contains(event.target)) {
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+    </script>
+</body>
+
+</html>

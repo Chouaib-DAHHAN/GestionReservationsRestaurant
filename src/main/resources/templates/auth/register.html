@@ -1,37 +1,123 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-image: url('https://source.unsplash.com/random/1920x1080/?restaurant,interior');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .backdrop-blur {
+            backdrop-filter: blur(8px);
+        }
+        .register-card {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+    </style>
 </head>
-<body>
-    <h2>Inscription</h2>
-    <form th:action="@{/auth/register}" method="post" th:object="${registerRequest}">
-        <label for="username">Nom d'utilisateur :</label>
-        <input type="text" id="username" th:field="*{username}" required /><br/><br/>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="backdrop-blur bg-white/90 rounded-xl p-8 register-card w-full max-w-md">
+        <!-- Logo / Titre -->
+        <div class="text-center mb-8">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 text-indigo-600 shadow-md mb-4">
+                <i class="fas fa-user-plus text-2xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800">Créer un compte</h2>
+            <p class="text-gray-600 mt-2">Rejoignez notre communauté</p>
+        </div>
 
-        <label for="password">Mot de passe :</label>
-        <input type="password" id="password" th:field="*{password}" required /><br/><br/>
+        <!-- Messages d'état -->
+        <div th:if="${errorMessage}" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
 
-        <label for="role">Rôle :</label>
-        <select id="role" th:field="*{role}" required>
-            <option value="" disabled selected>-- Choisir un rôle --</option>
-            <option value="CLIENT">Client</option>
-            <option value="ADMIN">Admin</option>
-        </select><br/><br/>
+        <div th:if="${successMessage}" class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span th:text="${successMessage}"></span>
+            </div>
+        </div>
 
-        <button type="submit">S'inscrire</button>
-    </form>
+        <!-- Formulaire -->
+        <form th:action="@{/auth/register}" method="post" th:object="${registerRequest}" class="space-y-6">
+            <!-- Nom d'utilisateur -->
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="username" th:field="*{username}" required
+                           class="input-field pl-10 block w-full rounded-md border-gray-300 shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="john.doe">
+                </div>
+            </div>
 
-    <div style="color: red;" th:if="${errorMessage}">
-        <p th:text="${errorMessage}"></p>
+            <!-- Mot de passe -->
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password" th:field="*{password}" required
+                           class="input-field pl-10 block w-full rounded-md border-gray-300 shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="••••••••">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">8 caractères minimum, avec majuscules et chiffres</p>
+            </div>
+
+            <!-- Rôle -->
+            <div>
+                <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user-tag text-gray-400"></i>
+                    </div>
+                    <select id="role" th:field="*{role}" required
+                            class="input-field pl-10 block w-full rounded-md border-gray-300 shadow-sm py-3 px-4 focus:ring-indigo-500 focus:border-indigo-500 appearance-none">
+                        <option value="" disabled selected>-- Choisir un rôle --</option>
+                        <option value="CLIENT">Client</option>
+                        <option value="ADMIN">Administrateur</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bouton d'inscription -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-user-plus mr-2"></i> S'inscrire
+                </button>
+            </div>
+        </form>
+
+        <!-- Lien vers connexion -->
+        <div class="mt-6 text-center text-sm">
+            <p class="text-gray-600">Déjà un compte ?
+                <a th:href="@{/login}" class="font-medium text-indigo-600 hover:text-indigo-500">Se connecter</a>
+            </p>
+        </div>
+
+        <!-- Mentions légales -->
+        <div class="mt-8 text-center text-xs text-gray-500">
+            <p>En vous inscrivant, vous acceptez nos <a href="#" class="text-indigo-600 hover:text-indigo-500">Conditions d'utilisation</a></p>
+        </div>
     </div>
-
-    <div style="color: green;" th:if="${successMessage}">
-        <p th:text="${successMessage}"></p>
-    </div>
-
-    <p>Déjà un compte ? <a th:href="@{/login}">Se connecter</a></p>
 </body>
 </html>
