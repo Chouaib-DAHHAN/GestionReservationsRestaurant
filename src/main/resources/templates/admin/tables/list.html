@@ -140,11 +140,11 @@
                                       'bg-green-100 border-4 border-green-500' : 
                                       'bg-red-100 border-4 border-red-500'"
                              class="h-full w-full flex flex-col items-center justify-center">
-                            <span class="font-bold text-lg" th:text="${table.numeroTable}"></span>
-                            <span class="text-sm" th:text="|${table.capacite} pers.|"></span>
+                            <span class="font-bold text-lg" th:text="${table.numeroTable}"></span><br>
+                            <span class="text-sm" th:text="|${table.capacite} pers.|"></span><br>
                             <span class="text-xs mt-1" 
                                   th:class="${table.disponible} ? 'text-green-700' : 'text-red-700'"
-                                  th:text="${table.disponible} ? 'Disponible' : 'Réservée'"></span>
+                                  th:text="${table.disponible} ? 'Disponible' : 'Réservée'"></span><br>
                             <span class="text-xs mt-1" th:text="${table.localisation}"></span>
                         </div>
                     </div>

@@ -22,6 +22,10 @@ public class Reservation {
 
     private String commentaire;
 
+    @Column(name = "duree_minutes")
+    private int dureeMinutes = 120;
+
+
     @ManyToOne
     private User user;
 

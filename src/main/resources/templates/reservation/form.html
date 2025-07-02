@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
+
 <head>
   <meta charset="UTF-8" />
   <title>Nouvelle Réservation</title>
- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-  
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
   <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
     <h2 class="text-2xl font-bold mb-4 text-center">Nouvelle Réservation</h2>
@@ -16,27 +16,35 @@
       <div>
         <label for="dateTime" class="block text-sm font-medium text-gray-700">Date et Heure :</label>
         <input type="datetime-local" id="dateTime" th:field="*{dateTime}" required
-               class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"/>
+          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+        <div id="countdown" class="text-sm text-gray-500 mt-1"></div>
       </div>
 
       <div>
-        <label for="nombrePersonnes" class="block text-sm font-medium text-gray-700">Nombre de Personnes :</label>
-        <input type="number" id="nombrePersonnes" th:field="*{nombrePersonnes}" required
-               class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"/>
+        <label for="nombrePersonnes" class="block text-sm font-medium text-gray-700">
+          Nombre de Personnes :
+        </label>
+        <input type="number" id="nombrePersonnes" th:field="*{nombrePersonnes}" required min="1"
+          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
       </div>
 
       <div>
         <label for="table" class="block text-sm font-medium text-gray-700">Table :</label>
         <select id="table" th:field="*{table.id}" required
-                class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
+          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
           <option value="" disabled selected>-- Sélectionner une table --</option>
-          <option th:each="table : ${tables}" th:value="${table.id}" th:text="${table.numeroTable}"></option>
+          <option th:each="table : ${tables}" 
+                  th:if="${table.disponible}" 
+                  th:value="${table.id}" 
+                  th:text="${table.numeroTable}" 
+                  th:data-capacite="${table.capacite}">
+          </option>
         </select>
       </div>
 
       <div class="flex justify-between items-center">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Enregistrer
+         Réserver
         </button>
         <a th:href="@{/reservations/list}" class="text-blue-600 hover:underline">Liste des réservations</a>
       </div>
@@ -54,13 +62,136 @@
       <p th:text="${success}"></p>
     </div>
 
-    <script th:inline="javascript">
-      var successMessage = /*[[${success}]]*/ '';
-      if (successMessage) {
-          alert(successMessage);
-      }
-    </script>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+   <script th:inline="javascript">
+  document.addEventListener("DOMContentLoaded", () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const minDateTime = now.toISOString().slice(0, 16);
+    const dateTimeInput = document.getElementById("dateTime");
+    dateTimeInput.setAttribute("min", minDateTime);
+
+    const countdown = document.getElementById("countdown");
+    dateTimeInput.addEventListener("change", () => {
+      const selectedDate = new Date(dateTimeInput.value);
+      const nowDate = new Date();
+      const diffMs = selectedDate - nowDate;
+      if (diffMs > 0) {
+        const minutes = Math.floor(diffMs / 60000);
+        countdown.innerText = `Il reste environ ${minutes} minute(s) avant votre réservation.`;
+      } else {
+        countdown.innerText = '';
+      }
+    });
+
+    const form = document.querySelector("form");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const dateTime = dateTimeInput.value;
+      const tableId = document.getElementById("table").value;
+      const nbPersonnes = parseInt(document.getElementById("nombrePersonnes").value);
+
+      const selectedOption = document.querySelector(`#table option[value="${tableId}"]`);
+      const capacite = parseInt(selectedOption?.dataset.capacite || 0);
+
+      if (!dateTime || !tableId || !nbPersonnes) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Champs manquants',
+          text: 'Veuillez remplir tous les champs.',
+        });
+        return;
+      }
+
+      const selectedDate = new Date(dateTime);
+      const nowDate = new Date();
+
+      if (selectedDate <= nowDate) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Date invalide',
+          text: 'La date et l’heure doivent être ultérieures à l’instant actuel.',
+        });
+        return;
+      }
+
+      const hour = selectedDate.getHours();
+      if (hour < 12 || hour > 22) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Horaire non autorisé',
+          text: 'Les réservations sont possibles uniquement entre 12h et 23h.',
+        });
+        return;
+      }
+
+      if (nbPersonnes < 1) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Nombre de personnes invalide',
+          text: 'Le nombre de personnes doit être au moins égal à 1.',
+        });
+        return;
+      }
+
+      if (nbPersonnes > capacite) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Capacité dépassée',
+          text: `Le nombre de personnes (${nbPersonnes}) dépasse la capacité de la table (${capacite}).`,
+        });
+        return;
+      }
+
+      try {
+        Swal.fire({
+          title: 'Vérification en cours...',
+          text: 'Veuillez patienter pendant la vérification de la disponibilité.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        const start = Date.now();
+
+        const response = await fetch(`/reservations/check?tableId=${tableId}&dateTime=${encodeURIComponent(dateTime)}&dureeMinutes=120`);
+        const result = await response.json();
+
+        const elapsed = Date.now() - start;
+        const minLoadingTime = 3000; // durée minimale en ms (2 secondes)
+
+        if (elapsed < minLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
+        }
+
+        Swal.close();
+
+        if (!result.available) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Table déjà réservée',
+            text: `Cette table est déjà réservée. Temps restant avant disponibilité : ${result.remaining} minutes.`,
+          });
+        } else {
+          form.submit();
+        }
+      } catch (error) {
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Erreur serveur',
+          text: 'Impossible de vérifier la disponibilité de la table.',
+        });
+      }
+    });
+  });
+</script>
+
+  </div>
 </body>
+
 </html>
