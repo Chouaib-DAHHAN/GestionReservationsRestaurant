@@ -42,10 +42,10 @@
             </div>
             <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
                 <div class="space-y-1">
-                    <a href="#"
-                        class="flex items-center px-2 py-3 text-sm font-medium text-white rounded-md bg-primary-500 group">
-                        <i class="fas fa-tachometer-alt mr-3"></i>
-                        Tableau de bord
+                    <a th:href="@{/dashboard}"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                     <i class="fa-solid fa-table-columns"></i><span class="ml-3"> </span>
+                       Dashboard
                     </a>
                     <a th:href="@{/admin/tables}"
                         class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">

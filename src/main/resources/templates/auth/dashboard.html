@@ -9,6 +9,8 @@ lang="en">
     <title>Tableau de bord Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -32,11 +34,7 @@ lang="en">
                 </div>
                 <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
                     <div class="space-y-1">
-                        
-                        
-
-                        
-                       <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                        <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                             <a th:href="@{/admin/tables}"
                                 class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
                                 <i class="fas fa-utensils mr-3"></i>
@@ -69,7 +67,6 @@ lang="en">
                             Faire Une Réservation
                         </a>
                         </div>
-                        
                     </div>
                 </div>
                 <div class="p-4 border-t border-gray-200">
@@ -186,6 +183,125 @@ lang="en">
                     </div>
                 </div>
 
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 gap-5 mt-6 lg:grid-cols-2">
+                    <!-- Reservation Trends Chart -->
+                    <div class="p-5 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Tendance des réservations cette semaine</h3>
+                        <div class="h-64">
+                            <canvas id="reservationTrendsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Satisfaction Chart -->
+                    <div class="p-5 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Satisfaction des clients</h3>
+                        <div class="h-64">
+                            <canvas id="satisfactionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="grid grid-cols-1 gap-5 mt-6 lg:grid-cols-3">
+                    <!-- Table Occupancy Rate -->
+                    <div class="p-5 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Taux de remplissage</h3>
+                        <div class="flex items-center justify-center">
+                            <div class="relative w-40 h-40">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <!-- Background circle -->
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e6e6e6" stroke-width="10"/>
+                                    <!-- Progress circle -->
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="10" 
+                                            stroke-dasharray="283" stroke-dashoffset="56.6" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-gray-800">80%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-center text-gray-600 mt-2">Taux moyen d'occupation des tables</p>
+                    </div>
+                    
+                    <!-- Monthly Progress -->
+                    <div class="p-5 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Progression mensuelle</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Réservations</span>
+                                    <span class="text-sm font-medium text-gray-700">75%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Revenus</span>
+                                    <span class="text-sm font-medium text-gray-700">62%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-600 h-2.5 rounded-full" style="width: 62%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700">Nouveaux clients</span>
+                                    <span class="text-sm font-medium text-gray-700">89%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-purple-600 h-2.5 rounded-full" style="width: 89%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Reports -->
+                    <div class="p-5 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Rapports récents</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center p-2 border border-gray-200 rounded-md hover:bg-gray-50">
+                                <div class="p-2 rounded-md bg-blue-100 text-blue-600 mr-3">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Rapport hebdomadaire</p>
+                                    <p class="text-xs text-gray-500">15 Juin 2023</p>
+                                </div>
+                                <a href="#" class="ml-2 text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                            <div class="flex items-center p-2 border border-gray-200 rounded-md hover:bg-gray-50">
+                                <div class="p-2 rounded-md bg-green-100 text-green-600 mr-3">
+                                    <i class="fas fa-file-excel"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Statistiques clients</p>
+                                    <p class="text-xs text-gray-500">8 Juin 2023</p>
+                                </div>
+                                <a href="#" class="ml-2 text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                            <div class="flex items-center p-2 border border-gray-200 rounded-md hover:bg-gray-50">
+                                <div class="p-2 rounded-md bg-yellow-100 text-yellow-600 mr-3">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">Analyse des ventes</p>
+                                    <p class="text-xs text-gray-500">1 Juin 2023</p>
+                                </div>
+                                <a href="#" class="ml-2 text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Recent activity and quick actions -->
                 <div class="grid grid-cols-1 gap-5 mt-6 lg:grid-cols-3">
                     <!-- Recent reservations -->
@@ -240,6 +356,47 @@ lang="en">
                                 </table>
                             </div>
                         </div>
+                        
+                        <!-- Customer Feedback Section -->
+                        <div class="p-5 bg-white rounded-lg shadow mt-5">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Avis clients récents</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <img src="https://randomuser.me/api/portraits/women/43.jpg" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <span class="font-medium text-gray-900 mr-2">Sophie Lambert</span>
+                                            <div class="flex text-yellow-400">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-600">"Service exceptionnel et nourriture délicieuse. Nous reviendrons certainement!"</p>
+                                        <p class="text-xs text-gray-500 mt-1">Hier, 19:45</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+                                    <div>
+                                        <div class="flex items-center mb-1">
+                                            <span class="font-medium text-gray-900 mr-2">Thomas Moreau</span>
+                                            <div class="flex text-yellow-400">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-600">"Ambiance agréable mais le service était un peu lent. La nourriture était excellente cependant."</p>
+                                        <p class="text-xs text-gray-500 mt-1">Aujourd'hui, 12:30</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Quick actions -->
@@ -269,6 +426,40 @@ lang="en">
                                 </a>
                             </div>
                         </div>
+                        
+                        <!-- Upcoming Events -->
+                        <div class="p-5 bg-white rounded-lg shadow mt-5">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Événements à venir</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <div class="p-2 rounded-md bg-purple-100 text-purple-600 mr-3">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Soirée jazz</p>
+                                        <p class="text-xs text-gray-500">25 Juin, 20:00 - 23:00</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="p-2 rounded-md bg-red-100 text-red-600 mr-3">
+                                        <i class="fas fa-utensils"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Dégustation de vins</p>
+                                        <p class="text-xs text-gray-500">30 Juin, 19:00 - 21:00</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="p-2 rounded-md bg-green-100 text-green-600 mr-3">
+                                        <i class="fas fa-birthday-cake"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">Anniversaire spécial</p>
+                                        <p class="text-xs text-gray-500">2 Juillet, 18:30</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -276,9 +467,74 @@ lang="en">
     </div>
 
     <script>
-        // Mobile menu toggle functionality would go here
         document.addEventListener('DOMContentLoaded', function () {
-            // You would add JavaScript for mobile menu toggle here
+            // Initialize charts when the DOM is fully loaded
+            
+            // Reservation Trends Chart (Line Chart)
+            const reservationCtx = document.getElementById('reservationTrendsChart').getContext('2d');
+            const reservationTrendsChart = new Chart(reservationCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Réservations',
+                        data: [12, 19, 15, 22, 28, 35, 30],
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Customer Satisfaction Chart (Pie Chart)
+            const satisfactionCtx = document.getElementById('satisfactionChart').getContext('2d');
+            const satisfactionChart = new Chart(satisfactionCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Très satisfait', 'Satisfait', 'Neutre', 'Insatisfait'],
+                    datasets: [{
+                        data: [65, 25, 7, 3],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
         });
     </script>
 </body>

@@ -1,197 +1,288 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
-
 <head>
-  <meta charset="UTF-8" />
-  <title>Nouvelle Réservation</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle Réservation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+        }
+    </style>
 </head>
-
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-
-  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
-    <h2 class="text-2xl font-bold mb-4 text-center">Nouvelle Réservation</h2>
-
-    <form th:action="@{/reservations/save}" method="post" th:object="${reservation}" class="space-y-4">
-      <div>
-        <label for="dateTime" class="block text-sm font-medium text-gray-700">Date et Heure :</label>
-        <input type="datetime-local" id="dateTime" th:field="*{dateTime}" required
-          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-        <div id="countdown" class="text-sm text-gray-500 mt-1"></div>
-      </div>
-
-      <div>
-        <label for="nombrePersonnes" class="block text-sm font-medium text-gray-700">
-          Nombre de Personnes :
-        </label>
-        <input type="number" id="nombrePersonnes" th:field="*{nombrePersonnes}" required min="1"
-          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
-      </div>
-
-      <div>
-        <label for="table" class="block text-sm font-medium text-gray-700">Table :</label>
-        <select id="table" th:field="*{table.id}" required
-          class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
-          <option value="" disabled selected>-- Sélectionner une table --</option>
-          <option th:each="table : ${tables}" 
-                  th:if="${table.disponible}" 
-                  th:value="${table.id}" 
-                  th:text="${table.numeroTable}" 
-                  th:data-capacite="${table.capacite}">
-          </option>
-        </select>
-      </div>
-
-      <div class="flex justify-between items-center">
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-         Réserver
-        </button>
-        <a th:href="@{/reservations/list}" class="text-blue-600 hover:underline">Liste des réservations</a>
-      </div>
-
-      <div class="text-sm mt-2 text-center">
-        <a th:href="@{/dashboard}" class="text-gray-600 hover:text-blue-500">↩ Retour à l'accueil</a>
-      </div>
-    </form>
-
-    <div th:if="${error}" class="text-red-600 mt-4 text-center font-semibold">
-      <p th:text="${error}"></p>
+<body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="sidebar hidden md:flex md:flex-shrink-0">
+        <div class="flex flex-col w-64 bg-white border-r border-gray-200">
+            <div class="flex items-center justify-center h-16 px-4 bg-white-600">
+               
+            </div>
+            <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
+                <div class="space-y-1">
+                    <a th:href="@{/dashboard}"
+                        class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                         <i class="fa-solid fa-table-columns"></i><span class="ml-3"> </span>
+                       Dashboard
+                    </a>
+                    <a th:href="@{/admin/tables}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                        <i class="fas fa-utensils mr-3 text-gray-400 group-hover:text-gray-500"></i>
+                        Gérer les tables
+                    </a>
+                    <a th:href="@{/reservations/list}" class="flex items-center px-2 py-3 text-sm font-medium text-white rounded-md bg-indigo-100 text-indigo-600 group">
+                        <i class="fas fa-calendar-alt mr-3"></i>
+                        Gérer les réservations
+                    </a>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700" th:text="${#authentication.principal.username}"></p>
+                         <form th:action="@{/perform_logout}" method="post">
+                            <button type="submit"
+                                class="text-xs font-medium text-red-500 hover:text-red-700 border-none bg-transparent cursor-pointer">
+                                Déconnexion
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div th:if="${success}" class="text-green-600 mt-4 text-center font-semibold">
-      <p th:text="${success}"></p>
+    <!-- Mobile menu button -->
+    <div class="md:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Mobile top navigation -->
+        <div class="md:hidden">
+            <div class="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
+                <div class="text-lg font-medium text-gray-900">Nouvelle Réservation</div>
+                <div class="flex items-center">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700" th:text="${#authentication.principal.username}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <main class="flex-1 overflow-y-auto p-4 sm:px-6 lg:px-8 bg-gray-100 flex items-center justify-center">
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+                <h2 class="text-2xl font-bold mb-4 text-center">Nouvelle Réservation</h2>
+
+                <form th:action="@{/reservations/save}" method="post" th:object="${reservation}" class="space-y-4">
+                    <div>
+                        <label for="dateTime" class="block text-sm font-medium text-gray-700">Date et Heure :</label>
+                        <input type="datetime-local" id="dateTime" th:field="*{dateTime}" required
+                            class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+                        <div id="countdown" class="text-sm text-gray-500 mt-1"></div>
+                    </div>
+
+                    <div>
+                        <label for="nombrePersonnes" class="block text-sm font-medium text-gray-700">
+                            Nombre de Personnes :
+                        </label>
+                        <input type="number" id="nombrePersonnes" th:field="*{nombrePersonnes}" required min="1"
+                            class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300" />
+                    </div>
+
+                    <div>
+                        <label for="table" class="block text-sm font-medium text-gray-700">Table :</label>
+                        <select id="table" th:field="*{table.id}" required
+                            class="mt-1 block w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring focus:ring-blue-300">
+                            <option value="" disabled selected>-- Sélectionner une table --</option>
+                            <option th:each="table : ${tables}" 
+                                    th:if="${table.disponible}" 
+                                    th:value="${table.id}" 
+                                    th:text="${table.numeroTable}" 
+                                    th:data-capacite="${table.capacite}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                            <i class="fas fa-calendar-plus mr-2"></i> Réserver
+                        </button>
+                        <a th:href="@{/reservations/list}" class="text-indigo-600 hover:underline">Liste des réservations</a>
+                    </div>
+
+                    <div class="text-sm mt-2 text-center">
+                        <a th:href="@{/dashboard}" class="text-gray-600 hover:text-indigo-500">↩ Retour à l'accueil</a>
+                    </div>
+                </form>
+
+                <div th:if="${error}" class="text-red-600 mt-4 text-center font-semibold">
+                    <p th:text="${error}"></p>
+                </div>
+
+                <div th:if="${success}" class="text-green-600 mt-4 text-center font-semibold">
+                    <p th:text="${success}"></p>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const minDateTime = now.toISOString().slice(0, 16);
+            const dateTimeInput = document.getElementById("dateTime");
+            dateTimeInput.setAttribute("min", minDateTime);
 
-   <script th:inline="javascript">
-  document.addEventListener("DOMContentLoaded", () => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    const minDateTime = now.toISOString().slice(0, 16);
-    const dateTimeInput = document.getElementById("dateTime");
-    dateTimeInput.setAttribute("min", minDateTime);
+            const countdown = document.getElementById("countdown");
+            dateTimeInput.addEventListener("change", () => {
+                const selectedDate = new Date(dateTimeInput.value);
+                const nowDate = new Date();
+                const diffMs = selectedDate - nowDate;
+                if (diffMs > 0) {
+                    const minutes = Math.floor(diffMs / 60000);
+                    countdown.innerText = `Il reste environ ${minutes} minute(s) avant votre réservation.`;
+                } else {
+                    countdown.innerText = '';
+                }
+            });
 
-    const countdown = document.getElementById("countdown");
-    dateTimeInput.addEventListener("change", () => {
-      const selectedDate = new Date(dateTimeInput.value);
-      const nowDate = new Date();
-      const diffMs = selectedDate - nowDate;
-      if (diffMs > 0) {
-        const minutes = Math.floor(diffMs / 60000);
-        countdown.innerText = `Il reste environ ${minutes} minute(s) avant votre réservation.`;
-      } else {
-        countdown.innerText = '';
-      }
-    });
+            const form = document.querySelector("form");
 
-    const form = document.querySelector("form");
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
 
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
+                const dateTime = dateTimeInput.value;
+                const tableId = document.getElementById("table").value;
+                const nbPersonnes = parseInt(document.getElementById("nombrePersonnes").value);
 
-      const dateTime = dateTimeInput.value;
-      const tableId = document.getElementById("table").value;
-      const nbPersonnes = parseInt(document.getElementById("nombrePersonnes").value);
+                const selectedOption = document.querySelector(`#table option[value="${tableId}"]`);
+                const capacite = parseInt(selectedOption?.dataset.capacite || 0);
 
-      const selectedOption = document.querySelector(`#table option[value="${tableId}"]`);
-      const capacite = parseInt(selectedOption?.dataset.capacite || 0);
+                if (!dateTime || !tableId || !nbPersonnes) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Champs manquants',
+                        text: 'Veuillez remplir tous les champs.',
+                    });
+                    return;
+                }
 
-      if (!dateTime || !tableId || !nbPersonnes) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Champs manquants',
-          text: 'Veuillez remplir tous les champs.',
+                const selectedDate = new Date(dateTime);
+                const nowDate = new Date();
+
+                if (selectedDate <= nowDate) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Date invalide',
+                        text: "La date et l'heure doivent être ultérieures à l'instant actuel.",
+                    });
+                    return;
+                }
+
+                const hour = selectedDate.getHours();
+                if (hour < 12 || hour > 22) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Horaire non autorisé',
+                        text: 'Les réservations sont possibles uniquement entre 12h et 23h.',
+                    });
+                    return;
+                }
+
+                if (nbPersonnes < 1) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Nombre de personnes invalide',
+                        text: 'Le nombre de personnes doit être au moins égal à 1.',
+                    });
+                    return;
+                }
+
+                if (nbPersonnes > capacite) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Capacité dépassée',
+                        text: `Le nombre de personnes (${nbPersonnes}) dépasse la capacité de la table (${capacite}).`,
+                    });
+                    return;
+                }
+
+                try {
+                    Swal.fire({
+                        title: 'Vérification en cours...',
+                        text: 'Veuillez patienter pendant la vérification de la disponibilité.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const start = Date.now();
+
+                    const response = await fetch(`/reservations/check?tableId=${tableId}&dateTime=${encodeURIComponent(dateTime)}&dureeMinutes=120`);
+                    const result = await response.json();
+
+                    const elapsed = Date.now() - start;
+                    const minLoadingTime = 3000; // durée minimale en ms (2 secondes)
+
+                    if (elapsed < minLoadingTime) {
+                        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
+                    }
+
+                    Swal.close();
+
+                    if (!result.available) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Table déjà réservée',
+                            text: `Cette table est déjà réservée. Temps restant avant disponibilité : ${result.remaining} minutes.`,
+                        });
+                    } else {
+                        form.submit();
+                    }
+                } catch (error) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur serveur',
+                        text: 'Impossible de vérifier la disponibilité de la table.',
+                    });
+                }
+            });
         });
-        return;
-      }
 
-      const selectedDate = new Date(dateTime);
-      const nowDate = new Date();
-
-      if (selectedDate <= nowDate) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Date invalide',
-          text: 'La date et l’heure doivent être ultérieures à l’instant actuel.',
-        });
-        return;
-      }
-
-      const hour = selectedDate.getHours();
-      if (hour < 12 || hour > 22) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Horaire non autorisé',
-          text: 'Les réservations sont possibles uniquement entre 12h et 23h.',
-        });
-        return;
-      }
-
-      if (nbPersonnes < 1) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Nombre de personnes invalide',
-          text: 'Le nombre de personnes doit être au moins égal à 1.',
-        });
-        return;
-      }
-
-      if (nbPersonnes > capacite) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Capacité dépassée',
-          text: `Le nombre de personnes (${nbPersonnes}) dépasse la capacité de la table (${capacite}).`,
-        });
-        return;
-      }
-
-      try {
-        Swal.fire({
-          title: 'Vérification en cours...',
-          text: 'Veuillez patienter pendant la vérification de la disponibilité.',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+        // Gestion du menu mobile
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-open');
         });
 
-        const start = Date.now();
-
-        const response = await fetch(`/reservations/check?tableId=${tableId}&dateTime=${encodeURIComponent(dateTime)}&dureeMinutes=120`);
-        const result = await response.json();
-
-        const elapsed = Date.now() - start;
-        const minLoadingTime = 3000; // durée minimale en ms (2 secondes)
-
-        if (elapsed < minLoadingTime) {
-          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
-        }
-
-        Swal.close();
-
-        if (!result.available) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Table déjà réservée',
-            text: `Cette table est déjà réservée. Temps restant avant disponibilité : ${result.remaining} minutes.`,
-          });
-        } else {
-          form.submit();
-        }
-      } catch (error) {
-        Swal.close();
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur serveur',
-          text: 'Impossible de vérifier la disponibilité de la table.',
+        // Fermer le sidebar quand on clique à l'extérieur (sur mobile)
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const mobileButton = document.getElementById('mobile-menu-button');
+            
+            if (window.innerWidth < 768 && 
+                !sidebar.contains(event.target) && 
+                event.target !== mobileButton && 
+                !mobileButton.contains(event.target)) {
+                document.body.classList.remove('sidebar-open');
+            }
         });
-      }
-    });
-  });
-</script>
-
-  </div>
+    </script>
 </body>
-
 </html>
