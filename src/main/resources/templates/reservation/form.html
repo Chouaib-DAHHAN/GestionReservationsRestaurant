@@ -9,6 +9,11 @@
     <style>
         .sidebar {
             transition: all 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 40;
         }
         @media (max-width: 768px) {
             .sidebar {
@@ -16,6 +21,9 @@
             }
             .sidebar-open .sidebar {
                 transform: translateX(0);
+            }
+            .sidebar-open {
+                overflow: hidden;
             }
         }
     </style>
@@ -68,7 +76,7 @@
     </div>
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
         <!-- Mobile top navigation -->
         <div class="md:hidden">
             <div class="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
@@ -86,7 +94,7 @@
             <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
                 <h2 class="text-2xl font-bold mb-4 text-center">Nouvelle Réservation</h2>
 
-                <form th:action="@{/reservations/save}" method="post" th:object="${reservation}" class="space-y-4">
+                <form th:action="@{/reservations/save}" method="post" th:object="${reservation}" class="space-y-4" id="reservationForm">
                     <div>
                         <label for="dateTime" class="block text-sm font-medium text-gray-700">Date et Heure :</label>
                         <input type="datetime-local" id="dateTime" th:field="*{dateTime}" required
@@ -140,30 +148,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", () => {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Set minimum datetime for the input
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const minDateTime = now.toISOString().slice(0, 16);
             const dateTimeInput = document.getElementById("dateTime");
-            dateTimeInput.setAttribute("min", minDateTime);
+            dateTimeInput.min = minDateTime;
 
+            // Countdown display
             const countdown = document.getElementById("countdown");
-            dateTimeInput.addEventListener("change", () => {
+            dateTimeInput.addEventListener("change", function() {
                 const selectedDate = new Date(dateTimeInput.value);
                 const nowDate = new Date();
                 const diffMs = selectedDate - nowDate;
+                
                 if (diffMs > 0) {
                     const minutes = Math.floor(diffMs / 60000);
-                    countdown.innerText = `Il reste environ ${minutes} minute(s) avant votre réservation.`;
+                    countdown.textContent = `Il reste environ ${minutes} minute(s) avant votre réservation.`;
                 } else {
-                    countdown.innerText = '';
+                    countdown.textContent = '';
                 }
             });
 
-            const form = document.querySelector("form");
-
-            form.addEventListener("submit", async function (e) {
+            // Form submission handling
+            const form = document.getElementById("reservationForm");
+            
+            form.addEventListener("submit", async function(e) {
                 e.preventDefault();
 
                 const dateTime = dateTimeInput.value;
@@ -171,9 +183,10 @@
                 const nbPersonnes = parseInt(document.getElementById("nombrePersonnes").value);
 
                 const selectedOption = document.querySelector(`#table option[value="${tableId}"]`);
-                const capacite = parseInt(selectedOption?.dataset.capacite || 0);
+                const capacite = parseInt(selectedOption?.getAttribute('data-capacite') || 0);
 
-                if (!dateTime || !tableId || !nbPersonnes) {
+                // Basic validation
+                if (!dateTime || !tableId || isNaN(nbPersonnes)) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Champs manquants',
@@ -223,7 +236,8 @@
                 }
 
                 try {
-                    Swal.fire({
+                    // Show loading state
+                    const swalInstance = Swal.fire({
                         title: 'Vérification en cours...',
                         text: 'Veuillez patienter pendant la vérification de la disponibilité.',
                         allowOutsideClick: false,
@@ -232,19 +246,17 @@
                         }
                     });
 
-                    const start = Date.now();
-
+                    // Check table availability
                     const response = await fetch(`/reservations/check?tableId=${tableId}&dateTime=${encodeURIComponent(dateTime)}&dureeMinutes=120`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
                     const result = await response.json();
 
-                    const elapsed = Date.now() - start;
-                    const minLoadingTime = 3000; // durée minimale en ms (2 secondes)
-
-                    if (elapsed < minLoadingTime) {
-                        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
-                    }
-
-                    Swal.close();
+                    // Close loading
+                    await swalInstance.close();
 
                     if (!result.available) {
                         Swal.fire({
@@ -253,10 +265,11 @@
                             text: `Cette table est déjà réservée. Temps restant avant disponibilité : ${result.remaining} minutes.`,
                         });
                     } else {
+                        // If available, submit the form
                         form.submit();
                     }
                 } catch (error) {
-                    Swal.close();
+                    console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Erreur serveur',
@@ -264,24 +277,24 @@
                     });
                 }
             });
-        });
 
-        // Gestion du menu mobile
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            document.body.classList.toggle('sidebar-open');
-        });
-
-        // Fermer le sidebar quand on clique à l'extérieur (sur mobile)
-        document.addEventListener('click', function(event) {
-            const sidebar = document.querySelector('.sidebar');
-            const mobileButton = document.getElementById('mobile-menu-button');
-            
-            if (window.innerWidth < 768 && 
-                !sidebar.contains(event.target) && 
-                event.target !== mobileButton && 
-                !mobileButton.contains(event.target)) {
-                document.body.classList.remove('sidebar-open');
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    document.body.classList.toggle('sidebar-open');
+                });
             }
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                const sidebar = document.querySelector('.sidebar');
+                const isMobile = window.innerWidth < 768;
+                
+                if (isMobile && !event.target.closest('.sidebar') && event.target !== mobileMenuButton && !mobileMenuButton.contains(event.target)) {
+                    document.body.classList.remove('sidebar-open');
+                }
+            });
         });
     </script>
 </body>
