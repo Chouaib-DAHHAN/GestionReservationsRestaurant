@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Clients</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-white border-r border-gray-200">
+                <div class="flex items-center justify-center h-16 px-4 bg-white-600">
+                    
+                </div>
+                <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
+                    <div class="space-y-1">
+                        <a th:href="@{/dashboard}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-table-columns mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a th:href="@{/admin/tables}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-utensils mr-3"></i>
+                            Gérer les tables
+                        </a>
+                        <a th:href="@{/reservations/list}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            Gérer les réservations
+                        </a>
+                        <a th:href="@{/admin/clients}" class="flex items-center px-2 py-3 text-sm font-medium text-white rounded-md bg-indigo-100 text-indigo-700 group">
+                            <i class="fas fa-users mr-3"></i>
+                            Clients
+                        </a>
+                     
+                    </div>
+                </div>
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex items-center">
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-700" th:text="${#authentication.principal.username}"></p>
+                            <form th:action="@{/perform_logout}" method="post">
+                                <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 border-none bg-transparent cursor-pointer">
+                                    Déconnexion
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <div class="container mx-auto px-4 py-8 max-w-4xl">
+                <div class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800" th:text="${client.id} ? 'Modifier client' : 'Ajouter un client'"></h1>
+                    <p class="text-gray-600">Remplissez les informations du client</p>
+                </div>
+
+                <!-- Client Form -->
+                <form th:action="@{/admin/clients/save}" method="post" th:object="${client}" class="bg-white shadow-md rounded-lg p-6">
+                    <input type="hidden" th:field="*{id}" />
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                            Nom d'utilisateur
+                        </label>
+                        <input type="text" th:field="*{username}" id="username" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                               required>
+                        <p class="text-red-500 text-xs italic" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+                    </div>
+
+                  
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                            Mot de passe
+                        </label>
+                        <input type="password" th:field="*{password}" id="password" 
+                               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                               th:attr="required=${client.id} ? false : true">
+                        <p class="text-red-500 text-xs italic" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+                    </div>
+
+                
+
+                    <div class="flex items-center justify-between">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            <i class="fas fa-save mr-2"></i> Enregistrer
+                        </button>
+                        <a th:href="@{/admin/clients}" class="inline-block align-baseline font-bold text-sm text-indigo-600 hover:text-indigo-800">
+                            <i class="fas fa-times mr-1"></i> Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

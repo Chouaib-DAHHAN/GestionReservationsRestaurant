@@ -35,6 +35,10 @@ lang="en">
                 <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
                     <div class="space-y-1">
                         <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                            <a th:href="@{/dashboard}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fa-solid fa-table-columns"></i><span class="ml-3"> </span>
+                             Dashboard
+                        </a>
                             <a th:href="@{/admin/tables}"
                                 class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
                                 <i class="fas fa-utensils mr-3"></i>
@@ -45,16 +49,12 @@ lang="en">
                             <i class="fas fa-calendar-alt mr-3"></i>
                             Gérer les réservations
                         </a>
-                        <a href="#"
+                        <a th:href="@{/admin/clients}"
                             class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
                             <i class="fas fa-users mr-3"></i>
                             Clients
                         </a>
-                        <a href="#"
-                            class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
-                            <i class="fas fa-cog mr-3"></i>
-                            Paramètres
-                        </a>
+                        
                         </div>
                         <div th:if="${#authorization.expression('hasRole(''CLIENT'')')}">
                              <a th:href="@{/dashboard}" class="flex items-center px-2 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 hover:text-gray-900 group">
