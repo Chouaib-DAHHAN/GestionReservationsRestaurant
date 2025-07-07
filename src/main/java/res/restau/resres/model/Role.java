@@ -24,3 +24,4 @@ public class Role {
 
     // getters/setters
 }
+ 
